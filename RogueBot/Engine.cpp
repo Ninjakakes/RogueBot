@@ -1,7 +1,7 @@
 #include "Engine.h"
 #include <SDL.h>
 
-Engine::Engine()
+Engine::Engine() :fovRadius(10)
 {
 	console = tcod::Console{ 80,50 };
 
@@ -16,8 +16,10 @@ Engine::Engine()
 
 	context = tcod::new_context(params);
 
-	player = new Entity(80 / 2, 50 / 2, '@', TCOD_grey);
+	player = new Entity(0, 0, '@', TCOD_grey);
 	entities.push(player);
+	map = new Map(80, 45);
+	map->computeFov();
 }
 
 Engine::~Engine()
@@ -27,6 +29,7 @@ Engine::~Engine()
 
 void Engine::update()
 {
+	int dx = 0, dy = 0;
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
@@ -37,16 +40,16 @@ void Engine::update()
 			switch (event.key.keysym.scancode)
 			{
 			case SDL_SCANCODE_UP:
-				player->y--;
+				dy = -1;
 				break;
 			case SDL_SCANCODE_DOWN:
-				player->y++;
+				dy = 1;
 				break;
 			case SDL_SCANCODE_LEFT:
-				player->x--;
+				dx = -1;
 				break;
 			case SDL_SCANCODE_RIGHT:
-				player->x++;
+				dx = 1;
 				break;
 			default:
 				break;
@@ -57,12 +60,29 @@ void Engine::update()
 			break;
 		default: break;
 		}
+		if (dx != 0 || dy != 0)
+		{
+			if (map->canWalk(player->x + dx, player->y + dy))
+			{
+				player->x += dx;
+				player->y += dy;
+				map->computeFov();
+			}
+		}
 	}
 }
 
 void Engine::render()
 {
 	TCOD_console_clear(console.get());
+	map->render();
+	for (Entity* entity : entities)
+	{
+		if (map->isInFov(entity->x, entity->y))
+		{
+			entity->render();
+		}
+	}
 	player->render();
 	context->present(console);
 }

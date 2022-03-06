@@ -2,6 +2,7 @@
 
 #include <libtcod.h>
 #include "Entity.h"
+#include "Map.h"
 
 class Engine
 {
@@ -10,6 +11,8 @@ public:
 	tcod::Console console;
 	TCODList<Entity*> entities;
 	Entity* player;
+	Map* map;
+	int fovRadius;
 
 	Engine();
 	~Engine();
