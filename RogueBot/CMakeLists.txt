@@ -4,7 +4,7 @@
 cmake_minimum_required (VERSION 3.8)
 
 # Add source to this project's executable.
-add_executable (RogueBot "main.cpp"  "Engine.h" "Engine.cpp" )
+add_executable (RogueBot "main.cpp"  "Engine.h" "Engine.cpp"  "Entity.h" "Entity.cpp")
 
 find_package(libtcod CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)

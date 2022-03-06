@@ -15,6 +15,14 @@ Engine::Engine()
 	params.tileset = tileset.get();
 
 	context = tcod::new_context(params);
+
+	player = new Entity(80 / 2, 50 / 2, '@', TCOD_grey);
+	entities.push(player);
+}
+
+Engine::~Engine()
+{
+	entities.clearAndDelete();
 }
 
 void Engine::update()
@@ -25,6 +33,25 @@ void Engine::update()
 		context->convert_event_coordinates(event);
 		switch (event.type)
 		{
+		case SDL_KEYDOWN:
+			switch (event.key.keysym.scancode)
+			{
+			case SDL_SCANCODE_UP:
+				player->y--;
+				break;
+			case SDL_SCANCODE_DOWN:
+				player->y++;
+				break;
+			case SDL_SCANCODE_LEFT:
+				player->x--;
+				break;
+			case SDL_SCANCODE_RIGHT:
+				player->x++;
+				break;
+			default:
+				break;
+			}
+			break;
 		case SDL_QUIT:
 			quit = true;
 			break;
@@ -36,6 +63,6 @@ void Engine::update()
 void Engine::render()
 {
 	TCOD_console_clear(console.get());
-	tcod::print(console, { 0, 0 }, "Hello World", TCOD_yellow, std::nullopt);
+	player->render();
 	context->present(console);
 }
