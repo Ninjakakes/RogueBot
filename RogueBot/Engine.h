@@ -17,6 +17,9 @@ public:
 	Engine();
 	~Engine();
 
+	void init();
+	void load();
+	void save();
 	void update();
 	void render();
 

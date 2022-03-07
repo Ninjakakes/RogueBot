@@ -15,16 +15,16 @@ public:
 	BspListener(Map& map) : map(map), roomNum(0) {}
 	bool visitNode(TCODBsp* node, void* userData)
 	{
+		bool withEntites = (bool)userData;
 		if (node->isLeaf())
 		{
 			int x, y, w, h;
 			// dig a room
-			TCODRandom* rng = TCODRandom::getInstance();
-			w = rng->getInt(ROOM_MIN_SIZE, node->w - 2);
-			h = rng->getInt(ROOM_MIN_SIZE, node->h - 2);
-			x = rng->getInt(node->x + 1, node->x + node->w - w - 1);
-			y = rng->getInt(node->y + 1, node->y + node->h - h - 1);
-			map.createRoom(roomNum == 0, x, y, x + w - 1, y + h - 1);
+			w = map.rng->getInt(ROOM_MIN_SIZE, node->w - 2);
+			h = map.rng->getInt(ROOM_MIN_SIZE, node->h - 2);
+			x = map.rng->getInt(node->x + 1, node->x + node->w - w - 1);
+			y = map.rng->getInt(node->y + 1, node->y + node->h - h - 1);
+			map.createRoom(roomNum == 0, x, y, x + w - 1, y + h - 1, withEntites);
 			if (roomNum != 0)
 			{
 				// dig a corridor from last room
@@ -41,18 +41,26 @@ public:
 
 Map::Map(int width, int height):width(width),height(height)
 {
+	seed = TCODRandom::getInstance()->getInt(0, LONG_MAX);
+	printf("%d", seed);
+}
+
+Map::~Map()
+{
+	delete rng;
+	delete[] tiles;
+	delete map;
+}
+
+void Map::init(bool withEntites)
+{
+	rng = new TCODRandom(seed);
 	tiles = new Tile[width * height];
 	map = new TCODMap(width, height);
 	TCODBsp bsp(0, 0, width, height);
 	bsp.splitRecursive(NULL, 8, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
 	BspListener listener(*this);
-	bsp.traverseInvertedLevelOrder(&listener, NULL);
-}
-
-Map::~Map()
-{
-	delete[] tiles;
-	delete map;
+	bsp.traverseInvertedLevelOrder(&listener, (void*)withEntites);
 }
 
 bool Map::isWall(int x, int y) const
@@ -138,9 +146,10 @@ void Map::dig(int x1, int y1, int x2, int y2)
 	}
 }
 
-void Map::createRoom(bool first, int x1, int y1, int x2, int y2)
+void Map::createRoom(bool first, int x1, int y1, int x2, int y2, bool withEntities)
 {
 	dig(x1, y1, x2, y2);
+	if (!withEntities) return;
 	if (first)
 	{
 		// put the player in the first room
@@ -149,7 +158,6 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2)
 	}
 	else
 	{
-		TCODRandom* rng = TCODRandom::getInstance();
 		int nbMonsters = rng->getInt(0, MAX_ROOM_MONSTERS);
 		while (nbMonsters > 0)
 		{

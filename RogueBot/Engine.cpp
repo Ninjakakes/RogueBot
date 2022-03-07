@@ -15,16 +15,29 @@ Engine::Engine() :fovRadius(10)
 	params.tileset = tileset.get();
 
 	context = tcod::new_context(params);
-
-	player = new Entity(0, 0, '@', TCOD_grey);
-	entities.push(player);
-	map = new Map(80, 45);
-	map->computeFov();
 }
 
 Engine::~Engine()
 {
 	entities.clearAndDelete();
+}
+
+void Engine::init()
+{
+	player = new Entity(0, 0, '@', TCOD_grey);
+	entities.push(player);
+	map = new Map(80, 45);
+	map->init(true);
+	map->computeFov();
+}
+
+void Engine::load()
+{
+	init();
+}
+
+void Engine::save()
+{
 }
 
 void Engine::update()
